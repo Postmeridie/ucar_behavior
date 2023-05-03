@@ -1,0 +1,5 @@
+<launch>
+    <node pkg="BehaviorTree" type="BehaviorTree" name="BehaviorTree" output="screen">
+         <rosparam file="$(find BehaviorTree)/config/behavior.yaml" command="load"/>
+    </node>
+</launch>
