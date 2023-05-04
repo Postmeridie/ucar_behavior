@@ -39,7 +39,7 @@ namespace BehaviorTree {
             move_base_msgs::MoveBaseGoal mbf_goal;
             mbf_goal.target_pose = patrol_list_[rand_index];
             mbf_client_->sendGoal(mbf_goal);
-            if(rand_index < patrol_list_.size())
+            if(rand_index < (patrol_list_.size() - 1))
                 rand_index++;
         }
     }
