@@ -14,19 +14,26 @@
 
 namespace BehaviorTree {
     class MoveBase : public BT::SyncActionNode{
-
     public:
+        enum DetectResult{
+            SUCCEEDED,
+            FAILURE
+        };
+        DetectResult DetectState = SUCCEEDED;
         MoveBase(const std::string& name, const BT::NodeConfiguration& config, const ros::NodeHandle& root_nh,
                 const ros::NodeHandle& decision_nh);
         static BT::PortsList providedPorts();
         BT::NodeStatus tick() override;
+
+
     private:
-//    double patrol_list[1][3];
-//    std::vector<double> patrol_list;
+        int goal_list_index = -1;
+        int rand_index = 0;
         std::vector<geometry_msgs::PoseStamped> patrol_list_;
         XmlRpc::XmlRpcValue patrol_list;
 //    int i = 0;
         std::unique_ptr<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>> mbf_client_;
+        void init();
         void Move_Base();
     };
 } // BehaviorTree

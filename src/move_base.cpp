@@ -11,35 +11,44 @@ namespace BehaviorTree {
                 std::make_unique<actionlib::SimpleActionClient<move_base_msgs::MoveBaseAction>>("move_base", true);
         ros::NodeHandle patrol_nh(decision_nh, "patrol");
         decision_nh.getParam("/behavior/behavior_list", patrol_list);
+    }
 
-        for (int i = 0; i < patrol_list.size(); ++i) {
-            ROS_ASSERT(patrol_list[i].getType() == XmlRpc::XmlRpcValue::TypeArray);
+    void MoveBase::init(){
+        if((DetectState == SUCCEEDED)||(rand_index == patrol_list[goal_list_index].size() - 1)) {
+            goal_list_index++;
+            rand_index = 0;
+            DetectState = SUCCEEDED;
+        }
+        for (int i = 0; (i < patrol_list[goal_list_index].size())&&(DetectState == SUCCEEDED); ++i) {
+            ROS_ASSERT(patrol_list[goal_list_index][i].getType() == XmlRpc::XmlRpcValue::TypeArray);
             geometry_msgs::PoseStamped pose_stamped;
             pose_stamped.header.frame_id = "map";
 
-            ROS_ASSERT(patrol_list[i][0].getType() == XmlRpc::XmlRpcValue::TypeDouble and
-                       patrol_list[i][1].getType() == XmlRpc::XmlRpcValue::TypeDouble and
-                       patrol_list[i][2].getType() == XmlRpc::XmlRpcValue::TypeDouble);
+            ROS_ASSERT(patrol_list[goal_list_index][i][0].getType() == XmlRpc::XmlRpcValue::TypeDouble and
+                       patrol_list[goal_list_index][i][1].getType() == XmlRpc::XmlRpcValue::TypeDouble and
+                       patrol_list[goal_list_index][i][2].getType() == XmlRpc::XmlRpcValue::TypeDouble);
 
-            pose_stamped.pose.position.x = static_cast<double>(patrol_list[i][0]);
-            pose_stamped.pose.position.y = static_cast<double>(patrol_list[i][1]);
+            pose_stamped.pose.position.x = static_cast<double>(patrol_list[goal_list_index][i][0]);
+            pose_stamped.pose.position.y = static_cast<double>(patrol_list[goal_list_index][i][1]);
             tf2::Quaternion quat;
-            quat.setRPY(0.0, 0.0, static_cast<double>(patrol_list[i][2]));
+            quat.setRPY(0.0, 0.0, static_cast<double>(patrol_list[goal_list_index][i][2]));
             pose_stamped.pose.orientation = toMsg(quat);
 
             patrol_list_.push_back(pose_stamped);
         }
+        DetectState = FAILURE;
     }
-
     void MoveBase::Move_Base(){
         if (actionlib::SimpleClientGoalState::ACTIVE == mbf_client_->getState().state_) {
             // do nothing
         } else {
-            int rand_index = 0;//rand() % (patrol_list_.size());
+            ros::Rate loop_rate(5.0/3.0);
+            loop_rate.sleep();
+            //rand() % (patrol_list_.size());
             move_base_msgs::MoveBaseGoal mbf_goal;
             mbf_goal.target_pose = patrol_list_[rand_index];
             mbf_client_->sendGoal(mbf_goal);
-            if(rand_index < (patrol_list_.size() - 1))
+            if(rand_index < (patrol_list[goal_list_index].size() - 1))
                 rand_index++;
         }
     }
