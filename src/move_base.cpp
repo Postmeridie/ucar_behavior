@@ -15,7 +15,8 @@ namespace BehaviorTree {
 
     void MoveBase::init(){
         if((DetectState == SUCCEEDED)||(rand_index == patrol_list[goal_list_index].size() - 1)) {
-            goal_list_index++;
+            if(goal_list_index < (patrol_list.size() - 1))
+                goal_list_index++;
             rand_index = 0;
             DetectState = SUCCEEDED;
         }
